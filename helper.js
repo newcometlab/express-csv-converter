@@ -3,27 +3,16 @@ const csv = require('fast-csv');
 const { arrayToTree } = require('performant-array-to-tree');
 
 const getTreeData = (data) => {
-  const rootTag = data[1][1];     // need to confirm
-
-  const rootNodes = data.filter(row => row[1] === rootTag);
+  const rootNodes = data.filter(row => row.parent === null);
   if (rootNodes.length === 0) return [];
 
-  const arrayData = data.map(row => {
-      return {
-          paaTitle: row[0],
-          parent: row[1] === rootTag ? null : row[1],
-          text: row[2],
-          url: row[3],
-          urlTitle: row[4],
-      }
-  })
   const tree = arrayToTree(
-      arrayData,
-      {
-          id: "paaTitle",
-          parentId: "parent",
-          dataField: null,
-      }
+    data,
+    {
+      id: "paaTitle",
+      parentId: "parent",
+      dataField: null,
+    }
   );
   return tree;
 }

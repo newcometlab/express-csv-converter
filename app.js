@@ -1,6 +1,9 @@
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const cors = require('cors');
+const crypto = require('crypto');
+const randomstring = require('randomstring');
+
 const { getCSVData, uploadFile, writeCSVData, getTreeData, getFlatData } = require('./helper');
 
 const app = express();
@@ -51,10 +54,55 @@ app.post('/api/upload', async (req, res) => {
     }
 
     const inputCsvData = await getCSVData(`./static/temp.csv`);
+    if (inputCsvData.length < 2) {
+        res.status(503).send({ msg: "Empty CSV" });
+        res.end();
+        return;
+    }
+    
+    const rootTag = inputCsvData[1][1];
+    const inputRows = [];
+    let hashMap = {};
+    let rndstrMap = {};
+    inputCsvData.slice(1).forEach(row => {
+        const key = crypto.createHash('md5').update(row[0]).digest('hex');
+
+        if (hashMap[key] === true) {
+            let str = randomstring.generate(10);
+            while (rndstrMap[str] === true) {
+                str = randomstring.generate(10);
+            }
+            rndstrMap[str] = true;
+
+            inputRows.push({
+                paaTitle: str + row[0],
+                parent: row[1] === rootTag ? null : row[1],
+                text: row[2],
+                url: row[3],
+                urlTitle: row[4],
+            });
+        } else {
+            hashMap[key] = true;
+
+            inputRows.push({
+                paaTitle: row[0],
+                parent: row[1] === rootTag ? null : row[1],
+                text: row[2],
+                url: row[3],
+                urlTitle: row[4],      
+            });
+        }
+    });
 
     let rows = [];
     try {
-        const tree = getTreeData(inputCsvData);
+        const tree = getTreeData(inputRows);
+
+        if (tree.length === 0) {
+            res.status(503).send({ msg: "Invalid CSV" });
+            res.end();
+            return;
+        }
 
         tree.forEach(data => {
             rows = rows.concat(getFlatData(data));
@@ -67,8 +115,11 @@ app.post('/api/upload', async (req, res) => {
     }
 
     const outputCsvData = rows.map(row => {
+        let { paaTitle } = row;
+        if (rndstrMap[paaTitle.slice(0, 10)] === true) paaTitle = paaTitle.slice(10);
+
         return {
-            paaTitle: row.paaTitle,
+            paaTitle: paaTitle,
             text: row.text,
             url: row.url,
             urlTitle: row.urlTitle,

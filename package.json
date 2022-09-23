@@ -15,6 +15,7 @@
     "express-fileupload": "^1.4.0",
     "fast-csv": "^4.3.6",
     "nodemon": "^2.0.20",
-    "performant-array-to-tree": "^1.11.0"
+    "performant-array-to-tree": "^1.11.0",
+    "randomstring": "^1.2.2"
   }
 }
