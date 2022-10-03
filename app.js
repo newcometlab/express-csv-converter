@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 })
 
 app.post('/api/reqjson', (req, res) => {
-    fs.writeFileSync('./static/req.json', JSON.stringify(req));
+    fs.writeFileSync('./static/req.json', JSON.stringify(req.body));
 
     res.send("done!")
     res.end();
