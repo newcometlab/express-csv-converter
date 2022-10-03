@@ -20,6 +20,13 @@ app.get('/', (req, res) => {
     res.end();
 })
 
+app.post('/api/reqjson', (req, res) => {
+    fs.writeFileSync('./static/req.json', JSON.stringify(req));
+
+    res.send("done!")
+    res.end();
+})
+
 app.post('/api/upload', async (req, res) => {
     if (!req.files) {
         res.status(500).send({ msg: "File is not found" });
